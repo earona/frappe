@@ -48,7 +48,7 @@ from frappe.utils.caching import request_cache
 from frappe.utils.data import cint, cstr, sbool
 
 # Backward compatibility
-from .decorators import whitelist
+from .decorators import validate_and_sanitize_search_inputs, whitelist
 
 # Local application imports
 from .exceptions import *
@@ -2414,24 +2414,6 @@ def mock(type, size=1, locale="en"):
 	from frappe.utils import squashify
 
 	return squashify(results)
-
-
-def validate_and_sanitize_search_inputs(fn):
-	@functools.wraps(fn)
-	def wrapper(*args, **kwargs):
-		from frappe.desk.search import sanitize_searchfield
-
-		kwargs.update(dict(zip(fn.__code__.co_varnames, args, strict=False)))
-		sanitize_searchfield(kwargs["searchfield"])
-		kwargs["start"] = cint(kwargs["start"])
-		kwargs["page_len"] = cint(kwargs["page_len"])
-
-		if kwargs["doctype"] and not db.exists("DocType", kwargs["doctype"]):
-			return []
-
-		return fn(**kwargs)
-
-	return wrapper
 
 
 import frappe._optimizations
