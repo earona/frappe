@@ -577,3 +577,5 @@ persistent_cache_keys = [
 user_invitation = {
 	"only_for": ["System Manager"],
 }
+
+link_formatters = {}
