@@ -578,4 +578,4 @@ user_invitation = {
 	"only_for": ["System Manager"],
 }
 
-link_formatters = {}
+link_formatters = ["User", "Customer"]
