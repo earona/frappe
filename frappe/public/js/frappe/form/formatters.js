@@ -455,30 +455,24 @@ frappe.get_format_helper = function (doc) {
  * @returns {string} - The formatted link value.
  */
 
-(frappe.boot.link_formatters || []).forEach((doctype) => {
-	frappe.form.link_formatters[doctype] = function (value, doc, df) {
-		return add_link_title(value, doc, df);
-	};
+(frappe.boot.link_formatters || []).forEach((formatter_config) => {
+	// Support both old format ["Doctype"] and new format [{"Doctype": "fieldname"}]
+	if (typeof formatter_config === "object") {
+		// New format: object with doctype as key and fieldname as value
+		// Since each doctype has only one possible field, we can destructure directly
+		Object.entries(formatter_config).forEach(([doctype, fieldname]) => {
+			frappe.form.link_formatters[doctype] = function (value, doc, df) {
+				return add_link_title(value, doc, df, fieldname);
+			};
+		});
+	}
 });
 
-function add_link_title(value, doc, df) {
-	let fieldname = `${df.fieldname}_name`;
-	if (df.options === "Item") {
-		fieldname = "item_name";
-	} else if (df.options === "User") {
-		fieldname = `${df.fieldname}_full_name`;
-	}
-
-	if (
-		doc &&
-		value &&
-		doc[fieldname] &&
-		doc[fieldname] !== value &&
-		doc[df.fieldname] === value
-	) {
-		return value + ": " + doc[fieldname];
-	} else if (!value && doc.doctype && doc[fieldname]) {
-		return doc[fieldname];
+function add_link_title(value, doc, df, title_field) {
+	if (doc && value && doc[title_field] && doc[title_field] !== value && doc[df.fieldname] === value) {
+		return value + ": " + doc[title_field];
+	} else if (!value && doc.doctype && doc[title_field]) {
+		return doc[title_field];
 	} else {
 		return value;
 	}
